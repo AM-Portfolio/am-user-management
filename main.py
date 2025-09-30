@@ -1,12 +1,6 @@
 """Main FastAPI application - App factory: mounts only enabled module routers"""
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
-
-from shared_infra.config.settings import settings
-from shared_infra.config.feature_flags import feature_flags
-from shared_infra.logging.logger import setup_logging, logger
 
 
 @asynccontextmanager
