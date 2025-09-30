@@ -2,6 +2,7 @@
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
+import logging
 
 from core.value_objects.email import Email
 from core.interfaces.repository import UserRepository
@@ -51,50 +52,60 @@ class LoginUseCase:
     
     async def execute(self, request: LoginRequest) -> LoginResponse:
         """Execute login use case"""
-        # Validate input
-        self._validate_request(request)
-        
-        # Create email value object
-        email = Email(request.email)
-        
-        # Find user by email
-        user = await self._get_user_by_email(email)
-        
-        # Check if account is locked
-        if user.is_locked():
-            raise AccountLockedError("Account is temporarily locked due to too many failed login attempts")
-        
-        # Verify password
-        if not self._password_hasher.verify_password(request.password, user.password_hash):
-            # Record failed attempt
-            user.record_failed_login()
+        try:
+            logging.info(f"Login attempt for email: {request.email}")
+            
+            # Validate input
+            self._validate_request(request)
+            
+            # Create email value object
+            email = Email(request.email)
+            
+            # Find user by email
+            user = await self._get_user_by_email(email)
+            logging.info(f"Found user with email: {user.email}, status: {user.status.value}")
+            
+            # Check if account is locked
+            if user.is_locked():
+                raise AccountLockedError("Account is temporarily locked due to too many failed login attempts")
+            
+            # Verify password
+            logging.info(f"Verifying password for user: {user.email}")
+            if not self._password_hasher.verify_password(request.password, user.password_hash):
+                # Record failed attempt
+                user.record_failed_login()
+                await self._user_repository.save(user)
+                raise InvalidPasswordError("Invalid password")
+            
+            logging.info(f"Password verified successfully for user: {user.email}")
+            
+            # Check if user can login
+            if not user.can_login():
+                raise InvalidCredentialsError(f"Account status does not allow login: {user.status.value}")
+            
+            # Check email verification if required
+            if self._require_email_verification and not user.is_email_verified():
+                raise EmailNotVerifiedError(str(user.email))
+            
+            # Record successful login
+            user.record_successful_login()
             await self._user_repository.save(user)
-            raise InvalidPasswordError("Invalid password")
-        
-        # Check if user can login
-        if not user.can_login():
-            raise InvalidCredentialsError(f"Account status does not allow login: {user.status.value}")
-        
-        # Check email verification if required
-        if self._require_email_verification and not user.is_email_verified():
-            raise EmailNotVerifiedError(str(user.email))
-        
-        # Record successful login
-        user.record_successful_login()
-        await self._user_repository.save(user)
-        
-        # Generate session ID (in real implementation, this would be handled by auth service)
-        session_id = f"session_{user.id}_{int(datetime.now().timestamp())}"
-        
-        # Return response
-        return LoginResponse(
-            user_id=str(user.id),
-            email=str(user.email),
-            status=user.status.value,
-            session_id=session_id,
-            last_login_at=user.last_login_at.isoformat() if user.last_login_at else "",
-            requires_verification=not user.is_email_verified()
-        )
+            
+            # Generate session ID (in real implementation, this would be handled by auth service)
+            session_id = f"session_{user.id}_{int(datetime.now().timestamp())}"
+            
+            # Return response
+            return LoginResponse(
+                user_id=str(user.id),
+                email=str(user.email),
+                status=user.status.value,
+                session_id=session_id,
+                last_login_at=user.last_login_at.isoformat() if user.last_login_at else "",
+                requires_verification=not user.is_email_verified()
+            )
+        except Exception as e:
+            logging.error(f"Error in login use case: {str(e)}", exc_info=True)
+            raise
     
     def _validate_request(self, request: LoginRequest) -> None:
         """Validate login request"""

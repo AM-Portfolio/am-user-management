@@ -1,5 +1,6 @@
 """Authentication router - POST /users, POST /login, POST /reset-password"""
 from typing import Annotated
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
@@ -75,10 +76,7 @@ async def login_user(
     except InvalidCredentialsError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "message": str(e),
-                "type": "invalid_credentials"
-            }
+            detail="Invalid email or password"
         )
     except EmailNotVerifiedError as e:
         raise HTTPException(
@@ -88,6 +86,12 @@ async def login_user(
                 "type": "email_not_verified",
                 "requires_verification": True
             }
+        )
+    except Exception as e:
+        logging.error(f"Unexpected error during login: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error occurred"
         )
 
 

@@ -4,11 +4,44 @@ from typing import Optional
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Enum as SQLEnum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import TypeDecorator, CHAR
 import uuid
 
 from ...domain.enums.user_status import UserStatus
 
 Base = declarative_base()
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type"""
+    impl = CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(UUID())
+        else:
+            return dialect.type_descriptor(CHAR(32))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return str(value)
+        else:
+            if not isinstance(value, uuid.UUID):
+                return "%.32x" % uuid.UUID(value).int
+            else:
+                return "%.32x" % value.int
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                return uuid.UUID(value)
+            else:
+                return value
 
 
 class UserAccountORM(Base):
@@ -17,7 +50,7 @@ class UserAccountORM(Base):
     __tablename__ = "user_accounts"
     
     # Primary key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
     
     # User credentials
     email = Column(String(255), unique=True, nullable=False, index=True)

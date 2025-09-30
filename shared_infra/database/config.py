@@ -11,12 +11,30 @@ class DatabaseConfig:
     """Database configuration"""
     
     def __init__(self):
-        # Get database URL from environment
-        self.database_url = os.getenv('DATABASE_URL', 'sqlite+aiosqlite:///./am_user_management.db')
+        # Get database URL from environment - prefer PostgreSQL
+        database_url = os.getenv('DATABASE_URL')
+        
+        if not database_url:
+            # Build from individual components
+            db_host = os.getenv('DB_HOST', 'localhost')
+            db_port = os.getenv('DB_PORT', '5432')
+            db_name = os.getenv('DB_NAME', 'am_user_management')
+            db_user = os.getenv('DB_USER', 'munishm')
+            db_password = os.getenv('DB_PASSWORD', '')
+            
+            # Build URL - handle empty password
+            if db_password:
+                database_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+            else:
+                database_url = f'postgresql://{db_user}@{db_host}:{db_port}/{db_name}'
         
         # Convert PostgreSQL URL to async if needed
-        if self.database_url.startswith('postgresql://'):
-            self.database_url = self.database_url.replace('postgresql://', 'postgresql+asyncpg://')
+        if database_url.startswith('postgresql://'):
+            self.database_url = database_url.replace('postgresql://', 'postgresql+asyncpg://')
+        else:
+            self.database_url = database_url
+        
+        print(f"🔗 Connecting to database: {self.database_url}")
         
         # Create async engine
         self.engine: AsyncEngine = create_async_engine(

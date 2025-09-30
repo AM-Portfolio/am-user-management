@@ -1,8 +1,15 @@
 """Integrated FastAPI application using the modular architecture"""
 import os
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,17 +82,13 @@ async def lifespan(app: FastAPI):
     # Create database tables
     try:
         await db_config.create_tables()
-        print("✅ Database tables created successfully")
+        print("✅ PostgreSQL database tables created successfully")
+        print(f"📊 Database URL: {db_config.database_url}")
     except Exception as e:
-        print(f"❌ Failed to create database tables: {e}")
-        # For development, we'll use SQLite fallback
-        if "postgresql" in str(e).lower():
-            print("🔄 Falling back to SQLite database...")
-            # Update config to use SQLite
-            db_config.database_url = 'sqlite+aiosqlite:///./am_user_management.db'
-            db_config.__init__()  # Reinitialize with SQLite
-            await db_config.create_tables()
-            print("✅ SQLite database initialized successfully")
+        print(f"❌ Failed to create PostgreSQL database tables: {e}")
+        print("💡 Make sure PostgreSQL is running: brew services start postgresql@15")
+        print("� Make sure database exists: createdb am_user_management")
+        raise e  # Don't fall back to SQLite, we want PostgreSQL
     
     yield
     
