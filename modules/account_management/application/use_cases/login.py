@@ -41,10 +41,12 @@ class LoginUseCase:
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasherInterface,
+        event_bus,
         require_email_verification: bool = True
     ):
         self._user_repository = user_repository
         self._password_hasher = password_hasher
+        self._event_bus = event_bus
         self._require_email_verification = require_email_verification
     
     async def execute(self, request: LoginRequest) -> LoginResponse:
