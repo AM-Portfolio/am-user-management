@@ -3,25 +3,37 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 
 from modules.account_management.infrastructure.models.user_account_orm import Base
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class DatabaseConfig:
     """Database configuration"""
     
     def __init__(self):
-        # Get database URL from environment - prefer PostgreSQL
+
+        print('Environment variables:')
+        print(f'DATABASE_URL: {os.getenv("DATABASE_URL")}')
+        print(f'DB_HOST: {os.getenv("DB_HOST")}')
+        print(f'DB_PORT: {os.getenv("DB_PORT")}')
+        print(f'DB_NAME: {os.getenv("DB_NAME")}')
+        print(f'DB_USER: {os.getenv("DB_USER")}')
+        print(f'DB_PASSWORD: {os.getenv("DB_PASSWORD")}')
+                # Get database URL from environment - prefer PostgreSQL
         database_url = os.getenv('DATABASE_URL')
         
         if not database_url:
             # Build from individual components
-            db_host = os.getenv('DB_HOST', 'localhost')
-            db_port = os.getenv('DB_PORT', '5432')
-            db_name = os.getenv('DB_NAME', 'am_user_management')
-            db_user = os.getenv('DB_USER', 'munishm')
-            db_password = os.getenv('DB_PASSWORD', '')
-            
+            db_host = os.getenv('DB_HOST')
+            db_port = os.getenv('DB_PORT')
+            db_name = os.getenv('DB_NAME')
+            db_user = os.getenv('DB_USER')
+            db_password = os.getenv('DB_PASSWORD')
+
             # Build URL - handle empty password
             if db_password:
                 database_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
@@ -61,6 +73,13 @@ class DatabaseConfig:
         """Drop database tables"""
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
+    
+    async def test_connection(self):
+        """Test database connection"""
+        from sqlalchemy import text
+        async with self.engine.begin() as conn:
+            result = await conn.execute(text("SELECT 1"))
+            return result.fetchone()
     
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
         """Get async database session"""
