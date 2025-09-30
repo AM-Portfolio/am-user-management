@@ -1,0 +1,1 @@
+# Authenticates → returns session_id (token handled externally)

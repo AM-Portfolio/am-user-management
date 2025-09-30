@@ -1,0 +1,1 @@
+# Entity: id, email, password_hash, status, verified_at

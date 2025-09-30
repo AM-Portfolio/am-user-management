@@ -1,0 +1,1 @@
+# Immutable UUID wrapper

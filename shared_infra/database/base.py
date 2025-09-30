@@ -1,0 +1,1 @@
+# DeclarativeBase for ORM

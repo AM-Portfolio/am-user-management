@@ -1,0 +1,1 @@
+# GET /internal/v1/users/{id}

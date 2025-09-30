@@ -1,0 +1,1 @@
+# App factory: mounts only enabled module routers

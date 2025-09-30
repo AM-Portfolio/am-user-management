@@ -1,0 +1,1 @@
+# Dependency injection: wires repos → use cases based on config
