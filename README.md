@@ -1,6 +1,12 @@
 # 🔐 AM User Management
 
-A production-ready user management system built with **Clean Architecture** principles, featuring secure authentication, email verification, and PostgreSQL integration.
+A production-ready user management system built with **Clean Ar# Run tests
+python -m pytest
+
+# Test API endpoints
+python tests/api/test_integrated_api.py
+
+# Test with curlure** principles, featuring secure authentication, email verification, and PostgreSQL integration.
 
 ## 🚀 **Current Status: FULLY FUNCTIONAL**
 

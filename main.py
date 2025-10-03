@@ -230,8 +230,13 @@ async def login(
         auth_response = await login_use_case.execute(use_case_request)
         
         # Get JWT token from auth-tokens service
-        # Use host.docker.internal to reach host from container
-        auth_tokens_url = os.getenv('AUTH_TOKENS_URL', 'http://host.docker.internal:8080')
+        auth_tokens_url = os.getenv('AUTH_TOKENS_URL')
+        
+        if not auth_tokens_url:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Auth tokens service URL not configured"
+            )
         
         async with httpx.AsyncClient() as client:
             token_response = await client.post(
