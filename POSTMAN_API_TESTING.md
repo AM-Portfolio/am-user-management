@@ -139,9 +139,101 @@ POST {{base_url}}/api/v1/auth/logout
 ```
 **Note:** Currently returns "Logout successful" (mock implementation)
 
+### 8. **Internal User Lookup** ✅
+```http
+GET {{base_url}}/internal/v1/users/{{user_id}}
+```
+**Success Response (200):**
+```json
+{
+  "user_id": "c381d32f-2cb6-4107-aeb6-e9e9d6eff1e7",
+  "username": "test@example.com",
+  "email": "test@example.com",
+  "status": "ACTIVE",
+  "scopes": ["read", "write"],
+  "active": true
+}
+```
+**Error Response (404):**
+```json
+{
+  "detail": "User not found"
+}
+```
+**Note:** Internal endpoint for JWT auth-tokens service integration
+
 ---
 
-## 🔄 **Production APIs (To Implement)**
+## � **JWT Auth-Tokens Integration Workflow**
+
+### **Complete Authentication Flow** ✅
+
+This workflow integrates with the separate **AM-Auth-Tokens** microservice:
+
+#### **Step 1: User Login**
+```http
+POST {{base_url}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "securePassword123"
+}
+```
+**Response:** Save the `user_id` from the response
+
+#### **Step 2: Create JWT Token**
+```http
+POST {{auth_tokens_url}}/api/v1/tokens/by-user-id
+Content-Type: application/json
+
+{
+  "user_id": "{{user_id_from_step_1}}"
+}
+```
+**Response:**
+```json
+{
+  "access_token": "eyJ0eXAi...",
+  "token_type": "bearer", 
+  "expires_in": 86400,
+  "user_id": "c381d32f-2cb6-4107-aeb6-e9e9d6eff1e7"
+}
+```
+
+#### **Step 3: Validate JWT Token**
+```http
+POST {{auth_tokens_url}}/api/v1/validate
+Content-Type: application/json
+
+{
+  "token": "{{access_token_from_step_2}}"
+}
+```
+**Response:**
+```json
+{
+  "valid": true,
+  "user_id": "c381d32f-2cb6-4107-aeb6-e9e9d6eff1e7",
+  "username": "test@example.com",
+  "scopes": ["read", "write"]
+}
+```
+
+### **Behind the Scenes:**
+When creating JWT tokens, the auth-tokens service calls:
+```http
+GET {{base_url}}/internal/v1/users/{{user_id}}
+```
+This verifies the user exists and is active before issuing JWT tokens.
+
+**Environment Variables for JWT Integration:**
+- `auth_tokens_url`: `http://localhost:8080` (AM-Auth-Tokens service)
+- `base_url`: `http://localhost:8000` (AM-User-Management service)
+
+---
+
+## �🔄 **Production APIs (To Implement)**
 
 These APIs are described in the production guide and ready for implementation:
 

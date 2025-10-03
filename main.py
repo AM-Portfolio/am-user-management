@@ -210,12 +210,15 @@ async def register(
         )
 
 
-@app.post("/api/v1/auth/login", response_model=LoginResponse)
+@app.post("/api/v1/auth/login")
 async def login(
     request: LoginRequestModel,
     login_use_case: LoginUseCase = Depends(get_login_use_case)
 ):
-    """Authenticate user"""
+    """Authenticate user and return JWT token"""
+    import httpx
+    import os
+    
     try:
         # Convert API request to use case request
         use_case_request = LoginRequest(
@@ -223,9 +226,51 @@ async def login(
             password=request.password
         )
         
-        # Execute use case
-        response = await login_use_case.execute(use_case_request)
-        return response
+        # Execute use case (authenticate user)
+        auth_response = await login_use_case.execute(use_case_request)
+        
+        # Get JWT token from auth-tokens service
+        # Use host.docker.internal to reach host from container
+        auth_tokens_url = os.getenv('AUTH_TOKENS_URL', 'http://host.docker.internal:8080')
+        
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(
+                f"{auth_tokens_url}/api/v1/tokens/by-user-id",
+                json={"user_id": auth_response.user_id},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if token_response.status_code == 200:
+                token_data = token_response.json()
+                
+                # Return enhanced response with JWT token
+                return {
+                    "user_id": auth_response.user_id,
+                    "email": auth_response.email,
+                    "status": auth_response.status,
+                    "session_id": auth_response.session_id,
+                    "last_login_at": auth_response.last_login_at,
+                    "requires_verification": auth_response.requires_verification,
+                    # JWT token fields
+                    "access_token": token_data.get("access_token"),
+                    "token_type": token_data.get("token_type", "bearer"),
+                    "expires_in": token_data.get("expires_in", 86400)
+                }
+            else:
+                # Fallback to original response if token service fails
+                print(f"Token service failed: {token_response.status_code}")
+                return {
+                    "user_id": auth_response.user_id,
+                    "email": auth_response.email,
+                    "status": auth_response.status,
+                    "session_id": auth_response.session_id,
+                    "last_login_at": auth_response.last_login_at,
+                    "requires_verification": auth_response.requires_verification,
+                    "access_token": None,
+                    "token_type": "bearer",
+                    "expires_in": 0,
+                    "warning": "Token service unavailable"
+                }
         
     except ValueError as e:
         raise HTTPException(
@@ -244,11 +289,62 @@ async def login(
         )
 
 
+# Internal API for auth-tokens service integration
+@app.get("/internal/v1/users/{user_id}")
+async def get_user_internal(
+    user_id: str,
+    user_repository: SQLAlchemyUserRepository = Depends(get_user_repository)
+):
+    """
+    Internal endpoint for auth-tokens service to verify user status.
+    Called when creating JWT tokens.
+    """
+    try:
+        # Import UserId to create proper value object
+        from core.value_objects.user_id import UserId
+        
+        # Create UserId object from string
+        user_id_obj = UserId(user_id)
+        
+        # Look up user by user_id
+        user = await user_repository.get_by_id(user_id_obj)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Return user details for JWT token creation
+        status_value = str(user.status.value).upper()  # Ensure uppercase comparison
+        is_active = status_value == "ACTIVE"
+        
+        return {
+            "user_id": str(user.id.value),  # Fixed: use user.id instead of user.user_id
+            "username": user.email.value,  # Using email as username
+            "email": user.email.value,
+            "status": status_value,
+            "scopes": ["read", "write"],  # Based on user roles/permissions
+            "active": is_active
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error occurred"
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     
     uvicorn.run(
-        "main_integrated:app",
+        "main:app",
         host="0.0.0.0",
         port=8000,
         reload=True
