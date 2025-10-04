@@ -172,3 +172,34 @@ cython_debug/
 # Logs
 logs/
 *.log
+
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Vim swap files
+*.swp
+*.swo
+
+# Development and debug files
+debug_*.py
+*.dev.py
+development_*.py
+
+# Test artifacts
+.pytest_cache/
+test-results/
+coverage.xml
+.coverage
+
+# Local development
+.env.local
+.env.development
