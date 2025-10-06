@@ -1,0 +1,23 @@
+# Python project dependencies
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+sqlalchemy>=2.0.23
+alembic>=1.12.1
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+argon2-cffi>=23.1.0
+python-multipart>=0.0.6
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+email-validator>=2.1.0
+aiofiles>=23.2.1
+redis>=5.0.1
+celery>=5.3.4
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+httpx>=0.25.2
+
+# Database drivers
+asyncpg>=0.29.0  # PostgreSQL async driver
+aiosqlite>=0.19.0  # SQLite async driver
+bcrypt>=4.0.1  # Password hashing
