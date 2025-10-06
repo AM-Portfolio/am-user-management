@@ -6,7 +6,10 @@ import os
 from dotenv import load_dotenv
 
 from modules.account_management.infrastructure.models.user_account_orm import Base
+<<<<<<< HEAD
+=======
 from modules.account_management.infrastructure.models.registered_service_orm import RegisteredServiceORM
+>>>>>>> develop-m
 
 # Load environment variables from .env file
 load_dotenv()
@@ -47,10 +50,13 @@ class DatabaseConfig:
         else:
             self.database_url = database_url
         
+<<<<<<< HEAD
+=======
         # Remove sslmode parameter as asyncpg doesn't support it in query string
         if '?sslmode=' in self.database_url:
             self.database_url = self.database_url.split('?sslmode=')[0]
         
+>>>>>>> develop-m
         print(f"🔗 Connecting to database: {self.database_url}")
         
         # Create async engine

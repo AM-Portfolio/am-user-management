@@ -1,6 +1,10 @@
 """SQLAlchemy session factory and database configuration"""
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+<<<<<<< HEAD
+from sqlalchemy.pool import StaticPool
+=======
+>>>>>>> develop-m
 
 from ..config.settings import settings
 from .base import Base
@@ -15,12 +19,25 @@ class DatabaseManager:
     
     def initialize(self) -> None:
         """Initialize database engine and session factory"""
+<<<<<<< HEAD
+        # Create async engine
+=======
+>>>>>>> develop-m
         self._engine = create_async_engine(
             settings.database.url,
             echo=settings.database.echo,
             pool_size=settings.database.pool_size,
             max_overflow=settings.database.max_overflow,
+<<<<<<< HEAD
+            pool_timeout=settings.database.pool_timeout,
+            # Use StaticPool for SQLite in-memory databases
+            poolclass=StaticPool if settings.database.url.startswith("sqlite") else None,
+            connect_args={
+                "check_same_thread": False
+            } if settings.database.url.startswith("sqlite") else {}
+=======
             pool_timeout=settings.database.pool_timeout
+>>>>>>> develop-m
         )
         
         # Create session factory
