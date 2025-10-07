@@ -3,6 +3,8 @@ from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
 import logging
+import httpx
+import os
 
 from core.value_objects.email import Email
 from core.interfaces.repository import UserRepository
@@ -30,9 +32,8 @@ class LoginResponse:
     user_id: str
     email: str
     status: str
-    session_id: str
-    last_login_at: str
-    requires_verification: bool = False
+    scopes: list
+    access_token: str
 
 
 class LoginUseCase:
@@ -91,17 +92,19 @@ class LoginUseCase:
             user.record_successful_login()
             await self._user_repository.save(user)
             
-            # Generate session ID (in real implementation, this would be handled by auth service)
-            session_id = f"session_{user.id}_{int(datetime.now().timestamp())}"
+            # Get user scopes (default scopes for now)
+            scopes = ["read", "write"]
+            
+            # Call Auth Tokens service to get JWT token using validated user_id
+            access_token = await self._get_access_token(str(user.id))
             
             # Return response
             return LoginResponse(
                 user_id=str(user.id),
                 email=str(user.email),
                 status=user.status.value,
-                session_id=session_id,
-                last_login_at=user.last_login_at.isoformat() if user.last_login_at else "",
-                requires_verification=not user.is_email_verified()
+                scopes=scopes,
+                access_token=access_token
             )
         except Exception as e:
             logging.error(f"Error in login use case: {str(e)}", exc_info=True)
@@ -121,6 +124,33 @@ class LoginUseCase:
         if not user:
             raise InvalidEmailError(str(email))
         return user
+    
+    async def _get_access_token(self, user_id: str) -> str:
+        """Call Auth Tokens service to get JWT access token using validated user_id"""
+        auth_service_url = os.getenv("AUTH_SERVICE_URL", "http://localhost:8080")
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{auth_service_url}/api/v1/tokens/by-user-id",
+                    json={"user_id": user_id},
+                    timeout=10.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    logging.info(f"Auth Tokens response: {data}")
+                    access_token = data.get("access_token")
+                    if not access_token:
+                        logging.error(f"Auth service returned invalid response - missing access_token: {data}")
+                        raise InvalidCredentialsError("Failed to generate access token - invalid response from auth service")
+                    return access_token
+                else:
+                    logging.error(f"Auth service error: {response.status_code} - {response.text}")
+                    raise InvalidCredentialsError("Failed to generate access token")
+        except httpx.RequestError as e:
+            logging.error(f"Failed to connect to auth service: {str(e)}")
+            raise InvalidCredentialsError("Authentication service unavailable")
 
 
 @dataclass

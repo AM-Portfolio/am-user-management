@@ -71,7 +71,10 @@ async def login_user(
     """Authenticate user login"""
     try:
         result = await login_use_case.execute(request.to_use_case_request())
-        return LoginResponse.from_use_case_response(result)
+        print(f"[AUTH_ROUTER] Use case result has access_token: {hasattr(result, 'access_token')} value: {getattr(result, 'access_token', 'MISSING')[:50] if hasattr(result, 'access_token') else 'N/A'}")
+        response = LoginResponse.from_use_case_response(result)
+        print(f"[AUTH_ROUTER] Pydantic response model_dump: {response.model_dump()}")
+        return response
         
     except InvalidCredentialsError as e:
         raise HTTPException(

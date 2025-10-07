@@ -66,24 +66,22 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     """Login API response schema"""
     user_id: str = Field(..., description="User ID")
+    username: str = Field(..., description="Username (email)")
     email: str = Field(..., description="User email address")
     status: str = Field(..., description="User account status")
-    session_id: str = Field(..., description="Session identifier")
-    last_login_at: Optional[datetime] = Field(None, description="Last login timestamp")
-    requires_verification: bool = Field(default=False, description="Whether email verification is required")
-    message: str = Field(default="Login successful", description="Success message")
+    scopes: list[str] = Field(default_factory=list, description="User scopes/permissions")
+    access_token: str = Field(..., description="JWT access token")
     
     @classmethod
     def from_use_case_response(cls, response: LoginUseCaseResponse) -> "LoginResponse":
         """Create from use case response"""
         return cls(
             user_id=response.user_id,
+            username=response.email,
             email=response.email,
             status=response.status,
-            session_id=response.session_id,
-            last_login_at=datetime.fromisoformat(response.last_login_at) if response.last_login_at else None,
-            requires_verification=response.requires_verification,
-            message="Login successful"
+            scopes=response.scopes,
+            access_token=response.access_token
         )
 
 
