@@ -93,8 +93,8 @@ async def lifespan(app: FastAPI):
         print(
             "💡 Make sure PostgreSQL is running: brew services start postgresql@15"
         )
-        print("🔧 Make sure database exists: createdb am_user_management")
-        raise e
+        print("� Make sure database exists: createdb am_user_management")
+        raise e  # Don't fall back to SQLite, we want PostgreSQL
 
     yield
 
