@@ -295,7 +295,7 @@
 	"variable": [
 		{
 			"key": "USER_BASE",
-			"value": "http://localhost:8000",
+			"value": "https://2f4d5a4b-f2a1-430a-a68b-3f4203f0e4df-00-3vzvsij2w2yta.pike.replit.dev:8000",
 			"type": "string"
 		}
 	]
