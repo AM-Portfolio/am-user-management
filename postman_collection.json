@@ -1,0 +1,302 @@
+{
+	"info": {
+		"_postman_id": "user-management-api",
+		"name": "User Management API - OAuth2 Service Registration",
+		"description": "Complete API collection for User Management Service with user auth and OAuth2 service registration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Root - Service Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{USER_BASE}}/",
+							"host": ["{{USER_BASE}}"],
+							"path": [""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{USER_BASE}}/health",
+							"host": ["{{USER_BASE}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auth Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/auth/status",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "auth", "status"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"user_id\", jsonData.user_id);",
+									"    console.log(\"User registered successfully\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"securePassword123\",\n  \"phone_number\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/auth/register",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"user_id\", jsonData.user_id);",
+									"    console.log(\"Login successful\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"securePassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/auth/login",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Authenticate user and return user data"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OAuth2 Service Registration",
+			"item": [
+				{
+					"name": "Register Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"consumer_key\", jsonData.consumer_key);",
+									"    pm.environment.set(\"consumer_secret\", jsonData.consumer_secret);",
+									"    pm.environment.set(\"service_id\", jsonData.service_id);",
+									"    console.log(\"⚠️ IMPORTANT: Consumer secret saved. This is the ONLY time you'll see it!\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_name\": \"Test Dashboard Application\",\n  \"service_id\": \"test_dashboard_app\",\n  \"primary_contact_name\": \"John Doe\",\n  \"admin_email\": \"admin@example.com\",\n  \"phone_number\": \"+1234567890\",\n  \"secondary_email\": \"backup@example.com\",\n  \"scopes\": [\"profile:read\", \"data:read\", \"data:write\"],\n  \"scope_justifications\": {\n    \"profile:read\": \"Display user profile information in dashboard\",\n    \"data:read\": \"Read user application data\",\n    \"data:write\": \"Update user preferences and settings\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/service/register",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "service", "register"]
+						},
+						"description": "Register a new OAuth2 service/application. Returns consumer_key and consumer_secret - SAVE THESE!"
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Service Credentials",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"consumer_key\": \"{{consumer_key}}\",\n  \"consumer_secret\": \"{{consumer_secret}}\"\n}"
+						},
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/service/validate-credentials",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "service", "validate-credentials"]
+						},
+						"description": "Validate OAuth2 service credentials"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Service Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Consumer-Key",
+								"value": "{{consumer_key}}"
+							},
+							{
+								"key": "X-Consumer-Secret",
+								"value": "{{consumer_secret}}"
+							}
+						],
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/service/{{service_id}}/status",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "service", "{{service_id}}", "status"]
+						},
+						"description": "Get service status and configuration"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Service",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Consumer-Key",
+								"value": "{{consumer_key}}"
+							},
+							{
+								"key": "X-Consumer-Secret",
+								"value": "{{consumer_secret}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_name\": \"Updated Dashboard App\",\n  \"admin_email\": \"newemail@example.com\",\n  \"scopes\": [\"profile:read\", \"data:read\"]\n}"
+						},
+						"url": {
+							"raw": "{{USER_BASE}}/api/v1/service/{{service_id}}/update",
+							"host": ["{{USER_BASE}}"],
+							"path": ["api", "v1", "service", "{{service_id}}", "update"]
+						},
+						"description": "Update service configuration"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Internal APIs",
+			"item": [
+				{
+					"name": "Get User by ID (Internal)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{USER_BASE}}/internal/v1/users/{{user_id}}",
+							"host": ["{{USER_BASE}}"],
+							"path": ["internal", "v1", "users", "{{user_id}}"]
+						},
+						"description": "Internal API for Auth Tokens service to verify user status"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Documentation",
+			"item": [
+				{
+					"name": "OpenAPI Docs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{USER_BASE}}/docs",
+							"host": ["{{USER_BASE}}"],
+							"path": ["docs"]
+						},
+						"description": "Interactive API documentation (Swagger UI)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "USER_BASE",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
