@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -8,13 +7,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-=======
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
->>>>>>> develop-m
 .Python
 build/
 develop-eggs/
@@ -28,16 +20,12 @@ parts/
 sdist/
 var/
 wheels/
-<<<<<<< HEAD
 share/python-wheels/
-=======
->>>>>>> develop-m
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
-<<<<<<< HEAD
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -176,7 +164,68 @@ cython_debug/
 # macOS
 .DS_Store
 
-=======
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Vim swap files
+*.swp
+*.swo
+
+# Development and debug files
+debug_*.py
+*.dev.py
+development_*.py
+
+# Test artifacts
+.pytest_cache/
+test-results/
+coverage.xml
+.coverage
+
+# Local development
+.env.local
+.env.development
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
 # Virtual Environments
 venv/
 env/
@@ -198,25 +247,12 @@ venv.bak/
 .env.local
 .env.*.local
 
->>>>>>> develop-m
 # Database
 *.db
 *.sqlite
 *.sqlite3
 
 # Logs
-<<<<<<< HEAD
-logs/
-*.log
-
-# Node modules (if any)
-node_modules/
-
-# Temporary files
-*.tmp
-*.temp
-*~
-=======
 *.log
 logs/
 *.log.*
@@ -251,30 +287,7 @@ celerybeat.pid
 
 # mkdocs
 /site
->>>>>>> develop-m
 
 # Backup files
 *.bak
 *.backup
-<<<<<<< HEAD
-
-# Vim swap files
-*.swp
-*.swo
-
-# Development and debug files
-debug_*.py
-*.dev.py
-development_*.py
-
-# Test artifacts
-.pytest_cache/
-test-results/
-coverage.xml
-.coverage
-
-# Local development
-.env.local
-.env.development
-=======
->>>>>>> develop-m
